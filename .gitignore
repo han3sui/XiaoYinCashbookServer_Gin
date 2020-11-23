@@ -1,0 +1,6 @@
+/go.sum
+/tmp
+/.idea
+/log
+/dist
+/config/config.toml
