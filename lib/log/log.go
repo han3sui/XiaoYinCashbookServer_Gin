@@ -27,12 +27,7 @@ var (
 
 func init() {
 	zapConfig = config.Config.GetStringMap("log")
-	Log = zap.New(getNewTee(), zap.AddCaller(), zap.AddStacktrace(zapcore.DebugLevel))
-	//if zapConfig["level"] == "debug" {
-	//	Log = zap.New(getNewTee(), zap.AddCaller(), zap.AddCallerSkip(2))
-	//} else {
-	//	Log = zap.New(getNewTee())
-	//}
+	Log = zap.New(getNewTee(), zap.AddStacktrace(zapcore.ErrorLevel))
 }
 func getNewTee() zapcore.Core {
 	allCore := getNewCore()

@@ -16,9 +16,9 @@ func LogInfo() gin.HandlerFunc {
 		c.Next()
 		duration := time.Since(start)
 		if len(c.Errors) == 0 && c.Writer.Status() == 200 {
-			log.Log.Info("Success",
+			log.Log.Sugar()
+			log.Log.Info(path,
 				zap.String("method", c.Request.Method),
-				zap.String("path", path),
 				zap.String("query", query),
 				zap.String("ip", c.ClientIP()),
 				zap.String("user-agent", c.Request.UserAgent()),
