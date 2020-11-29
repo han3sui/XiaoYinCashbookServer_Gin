@@ -5,15 +5,20 @@ import (
 	"net/http"
 	"time"
 	"xiaoyin/lib/config"
+	"xiaoyin/lib/db"
+	"xiaoyin/lib/redis"
 	"xiaoyin/router"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Run() {
-	server()
-}
-
-func server() {
 	serverConfig := config.Config.GetStringMap("server")
+	if !serverConfig["debug"].(bool) {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	db.Init()
+	redis.Init()
 	s := &http.Server{
 		Addr:         serverConfig["addr"].(string),
 		Handler:      router.InitRouter(),
@@ -22,6 +27,6 @@ func server() {
 	}
 	err := s.ListenAndServe()
 	if err != nil {
-		panic(fmt.Errorf("server start faield: %s \n", err))
+		panic(fmt.Errorf("服务启动失败: %s", err))
 	}
 }

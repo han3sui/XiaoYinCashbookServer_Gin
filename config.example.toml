@@ -3,6 +3,8 @@
 Addr = ":8199"
 #数据路类型
 DbType = "mysql"
+#运行模式
+Debug = true
 
 [mysql]
 #Link = "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
@@ -16,7 +18,7 @@ Config = "charset=utf8mb4&parseTime=True&loc=Local"
 #日志保存路径
 Path = "log"
 #日志等级，可使用 "debug", "info", "warn", "error", "dpanic", "panic", "fatal",
-Level = "debug1"
+Level = "debug"
 #日志格式，console: 控制台, json: json格式输出
 Format = "console"
 #前缀

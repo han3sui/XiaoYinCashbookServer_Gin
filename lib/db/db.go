@@ -5,9 +5,9 @@ import (
 	"time"
 	"xiaoyin/lib/config"
 
-	"github.com/gin-gonic/gin"
-
 	"gorm.io/gorm/logger"
+
+	"github.com/gin-gonic/gin"
 
 	"gorm.io/driver/mysql"
 
@@ -19,19 +19,19 @@ var (
 	dbErr error
 )
 
-func init() {
+func Init() {
 	dbConfig := config.Config.GetStringMap("mysql")
 	link := fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", dbConfig["username"], dbConfig["password"], dbConfig["addr"], dbConfig["dbname"], dbConfig["config"])
 	gormConfig := &gorm.Config{}
-	if gin.Mode() == "debug" {
+	if gin.Mode() != gin.ReleaseMode {
 		gormConfig.Logger = logger.Default.LogMode(logger.Info)
 	}
 	DB, dbErr = gorm.Open(mysql.Open(link), gormConfig)
 	if dbErr != nil {
-		panic(fmt.Errorf("mysql connect faield: %s \n", dbErr))
+		panic(fmt.Errorf("数据库连接失败: %s", dbErr))
 	}
 	if DB == nil {
-		panic(fmt.Errorf("db init is nil"))
+		panic(fmt.Errorf("数据库初始化nil"))
 	}
 	sqlDB, _ := DB.DB()
 	//设置空闲连接池中连接的最大数量

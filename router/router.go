@@ -15,7 +15,7 @@ import (
 )
 
 func InitRouter() http.Handler {
-	r := gin.Default()
+	r := gin.New()
 	r.NoMethod(middleware.NotFound())
 	r.NoRoute(middleware.NotFound())
 	r.Use(middleware.LogInfo(), middleware.Recover(), middleware.Cors())
