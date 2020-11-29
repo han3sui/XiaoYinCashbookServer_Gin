@@ -3,7 +3,6 @@ package log
 import (
 	"fmt"
 	"os"
-	"time"
 	"xiaoyin/lib/config"
 
 	"go.uber.org/zap"
@@ -39,68 +38,17 @@ func getNewCore() (allCore []zapcore.Core) {
 	level := fmt.Sprintf("%s", zapConfig["level"])
 	//如果没有匹配到，zapLevel=0，默认为info级别
 	zapLevel := levelMap[level]
-	if zapLevel <= zapcore.FatalLevel {
-		fatalHook := getLumberjackConfig("fatal")
-		fataLevel := getLevel(zapcore.FatalLevel)
-		allCore = append(allCore, zapcore.NewCore(
-			encoder,
-			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&fatalHook)),
-			fataLevel,
-		))
-	}
-	if zapLevel <= zapcore.PanicLevel {
-		panicHook := getLumberjackConfig("panic")
-		panicLevel := getLevel(zapcore.PanicLevel)
-		allCore = append(allCore, zapcore.NewCore(
-			encoder,
-			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&panicHook)),
-			panicLevel,
-		))
-	}
-	if zapLevel <= zapcore.DPanicLevel {
-		dpanicHook := getLumberjackConfig("dpanic")
-		dpanicLevel := getLevel(zapcore.DPanicLevel)
-		allCore = append(allCore, zapcore.NewCore(
-			encoder,
-			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&dpanicHook)),
-			dpanicLevel,
-		))
-	}
-	if zapLevel <= zapcore.ErrorLevel {
-		errorHook := getLumberjackConfig("error")
-		errorLevel := getLevel(zapcore.ErrorLevel)
-		allCore = append(allCore, zapcore.NewCore(
-			encoder,
-			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&errorHook)),
-			errorLevel,
-		))
-	}
-	if zapLevel <= zapcore.WarnLevel {
-		warnHook := getLumberjackConfig("warn")
-		warnLevel := getLevel(zapcore.WarnLevel)
-		allCore = append(allCore, zapcore.NewCore(
-			encoder,
-			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&warnHook)),
-			warnLevel,
-		))
-	}
-	if zapLevel <= zapcore.InfoLevel {
-		infoHook := getLumberjackConfig("info")
-		infoLevel := getLevel(zapcore.InfoLevel)
-		allCore = append(allCore, zapcore.NewCore(
-			encoder,
-			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&infoHook)),
-			infoLevel,
-		))
-	}
-	if zapLevel <= zapcore.DebugLevel {
-		debugHook := getLumberjackConfig("debug")
-		debugLevel := getLevel(zapcore.DebugLevel)
-		allCore = append(allCore, zapcore.NewCore(
-			encoder,
-			zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&debugHook)),
-			debugLevel,
-		))
+	//遍历所有level，增加多个日志等级文件
+	for k, v := range levelMap {
+		if zapLevel <= v {
+			//获取日志分割
+			hook := getLumberjackConfig(k)
+			allCore = append(allCore, zapcore.NewCore(
+				encoder,
+				zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)), //打印控制台和日志
+				getLevel(v),
+			))
+		}
 	}
 	return
 }
@@ -150,13 +98,16 @@ func getEncoderConfig() (config zapcore.EncoderConfig) {
 	return
 }
 
+//日志文件切割
 func getLumberjackConfig(name string) lumberjack.Logger {
 	path := zapConfig["path"]
 	return lumberjack.Logger{
-		Filename:   fmt.Sprintf("%s/%s/%s.log", path, time.Now().Format("2006-01-02"), name), // 日志文件路径
-		MaxSize:    128,                                                                      // 每个日志文件保存的最大尺寸 单位：M
-		MaxBackups: 30,                                                                       // 日志文件最多保存多少个备份
-		MaxAge:     7,                                                                        // 文件最多保存多少天
-		Compress:   true,                                                                     // 是否压缩
+		//Filename:   fmt.Sprintf("%s/%s/%s.log", path, time.Now().Format("2006-01-02"), name), // 日志文件路径
+		Filename:   fmt.Sprintf("%s/%s.log", path, name), // 日志文件路径
+		MaxSize:    128,                                  // 每个日志文件保存的最大尺寸 单位：M
+		MaxBackups: 30,                                   // 被分割日志最大留存个数
+		MaxAge:     15,                                   // 被分割日志最大留存天数
+		Compress:   true,                                 // 是否压缩
+		LocalTime:  true,                                 //被分割的日志是否使用本地时间
 	}
 }

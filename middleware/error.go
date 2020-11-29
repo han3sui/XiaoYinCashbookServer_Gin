@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"net/http/httputil"
 	"time"
 	"xiaoyin/lib/log"
 
@@ -27,17 +26,13 @@ func Recover() gin.HandlerFunc {
 					Request:   c.Request.Method + " " + c.Request.URL.Path,
 					Timestamp: time.Now().Unix(),
 				})
-				//str := fmt.Sprintf("%s", err)
-				httpRequest, _ := httputil.DumpRequest(c.Request, false)
 				log.Log.Error("[Recovery from panic]",
+					zap.Any("error", err),
 					zap.String("method", c.Request.Method),
-					zap.String("path", c.Request.URL.Path),
-					zap.String("query", c.Request.URL.RawQuery),
+					zap.String("path", c.Request.RequestURI),
 					zap.String("ip", c.ClientIP()),
 					zap.String("user-agent", c.Request.UserAgent()),
-					zap.Any("error", err),
-					zap.String("request", string(httpRequest)),
-					//zap.String("stack", string(debug.Stack())),
+					zap.String("token", c.GetHeader("Authorization")),
 				)
 			}
 		}()
