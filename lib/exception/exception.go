@@ -38,10 +38,12 @@ func Common(c *gin.Context, code int, err error) {
 		//message = v.Error()
 	}
 	_ = c.Error(err)
+	body, _ := c.GetRawData()
 	log.Log.Error(fmt.Sprintf("%v", err),
 		zap.String("method", c.Request.Method),
 		zap.String("path", c.Request.URL.Path),
 		zap.String("query", c.Request.URL.RawQuery),
+		zap.ByteString("body", body),
 		zap.String("ip", c.ClientIP()),
 		zap.String("user-agent", c.Request.UserAgent()),
 		zap.String("token", c.GetHeader("Authorization")),
