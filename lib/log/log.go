@@ -43,6 +43,13 @@ func getNewCore() (allCore []zapcore.Core) {
 		if zapLevel <= v {
 			//获取日志分割
 			hook := getLumberjackConfig(k)
+			//每隔24小时主动分割
+			//go func() {
+			//	for {
+			//		<-time.After(time.Hour * 24)
+			//		_ = hook.Rotate()
+			//	}
+			//}()
 			allCore = append(allCore, zapcore.NewCore(
 				encoder,
 				zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)), //打印控制台和日志
@@ -107,7 +114,7 @@ func getLumberjackConfig(name string) lumberjack.Logger {
 		MaxSize:    128,                                  // 每个日志文件保存的最大尺寸 单位：M
 		MaxBackups: 30,                                   // 被分割日志最大留存个数
 		MaxAge:     15,                                   // 被分割日志最大留存天数
-		Compress:   true,                                 // 是否压缩
+		Compress:   false,                                // 是否压缩
 		LocalTime:  true,                                 //被分割的日志是否使用本地时间
 	}
 }
