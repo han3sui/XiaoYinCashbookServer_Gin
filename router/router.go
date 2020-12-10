@@ -27,6 +27,7 @@ func InitRouter() http.Handler {
 		accountGroup := v2.Group("/accounts")
 		{
 			accountGroup.GET("", account.ListByUid)
+			accountGroup.GET("/details/count/:id", account.GetDetailsCount)
 			accountGroup.GET("/manage-list", account.ManageList)
 			accountGroup.POST("", account.Save)
 			accountGroup.PUT("/:id", account.Update)

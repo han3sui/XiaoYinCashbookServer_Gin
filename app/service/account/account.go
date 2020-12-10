@@ -45,6 +45,11 @@ func Save(data *Info) (id uint, err error) {
 	return
 }
 
+func GetDetailsCount(uid uint, id uint) (count int64, err error) {
+	err = db.DB.Model(&detail.Detail{}).Where("user_id = ? AND account_id = ?", uid, id).Count(&count).Error
+	return
+}
+
 func Update(tmpBalance float64, data *Info) (err error) {
 	id, balance, err := account.CheckExist(data.UserId, data.Name)
 	if err != nil {

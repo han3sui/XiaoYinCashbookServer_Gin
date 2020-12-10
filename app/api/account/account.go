@@ -143,3 +143,27 @@ func DelWithDetails(c *gin.Context) {
 		c.Status(200)
 	}
 }
+
+func GetDetailsCount(c *gin.Context) {
+	uid, err := util.GetUid(c)
+	if err != nil {
+		exception.Common(c, 101510, err)
+		return
+	}
+	idStr := c.Param("id")
+	if idStr == "" {
+		exception.Common(c, 101511, errors.New("获取账户参数失败"))
+		return
+	}
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		exception.Common(c, 101512, err)
+		return
+	}
+	count, err := account.GetDetailsCount(uid, uint(id))
+	if err != nil {
+		exception.Common(c, 101513, errors.Wrap(err, "查询关联账单失败"))
+		return
+	}
+	c.JSON(200, count)
+}
