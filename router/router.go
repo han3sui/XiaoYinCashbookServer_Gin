@@ -19,7 +19,6 @@ func InitRouter() http.Handler {
 	r.NoMethod(middleware.NotFound())
 	r.NoRoute(middleware.NotFound())
 	r.Use(middleware.LogInfo(), middleware.Recover(), middleware.Cors())
-	//r.Use(middleware.Cors(), middleware.Recover(), middleware.LogInfo())
 	v2 := r.Group("/api/v2")
 	v2.POST("token", token.Grant)
 	v2.Use(middleware.Jwt())

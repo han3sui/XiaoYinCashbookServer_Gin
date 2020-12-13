@@ -5,8 +5,7 @@ import (
 	"xiaoyin/app/model/account"
 	"xiaoyin/app/model/detail"
 	"xiaoyin/lib/db"
-
-	"github.com/shopspring/decimal"
+	"xiaoyin/lib/util"
 
 	"github.com/pkg/errors"
 )
@@ -61,7 +60,7 @@ func Update(tmpBalance float64, data *Info) (err error) {
 		return
 	}
 	if tmpBalance != *data.Balance {
-		v, _ := decimal.NewFromFloatWithExponent(balance, -2).Add(decimal.NewFromFloatWithExponent(*data.Balance, -2).Sub(decimal.NewFromFloatWithExponent(tmpBalance, -2))).Float64()
+		v := util.FloatAdd(balance, util.FloatSub(*data.Balance, tmpBalance, 2), 2)
 		data.Balance = &v
 	} else {
 		data.Balance = &balance
@@ -134,20 +133,20 @@ func GetManageList(uid uint) (list []*ManageList, err error) {
 			if v1.AccountId == v.ID {
 				switch v1.Direction {
 				case 1:
-					incomeMoney += v1.Money
+					incomeMoney = util.FloatAdd(incomeMoney, v1.Money, 2)
 				case 2:
-					outMoney += v1.Money
+					outMoney = util.FloatAdd(outMoney, v1.Money, 2)
 				case 3:
-					outMoney += v1.Money
+					outMoney = util.FloatAdd(outMoney, v1.Money, 2)
 				default:
 					fmt.Println("unknown")
 				}
 			}
 			if v1.IncomeAccountId == v.ID {
-				incomeMoney += v1.Money
+				incomeMoney = util.FloatAdd(incomeMoney, v1.Money, 2)
 			}
 		}
-		balance, _ := (decimal.NewFromFloatWithExponent(*v.Balance, -2).Add(decimal.NewFromFloatWithExponent(incomeMoney, -2))).Sub(decimal.NewFromFloatWithExponent(outMoney, -2)).Float64()
+		balance := util.FloatSub(util.FloatAdd(*v.Balance, incomeMoney, 2), outMoney, 2)
 		obj := ManageList{
 			Id:       v.ID,
 			Name:     v.Name,

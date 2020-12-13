@@ -18,6 +18,7 @@ func HasError(c *gin.Context, code int, err error) {
 	}
 }
 
+//获取用户ID
 func GetUid(c *gin.Context) (uid uint, err error) {
 	v, ok := c.Get("uid")
 	if ok {
