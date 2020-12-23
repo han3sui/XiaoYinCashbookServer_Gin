@@ -122,7 +122,7 @@ func ListByParams(c *gin.Context) {
 		return
 	}
 	if list == nil {
-		c.JSON(200, make([]interface{}, 0))
+		c.JSON(200, []interface{}{})
 	} else {
 		c.JSON(200, list)
 	}

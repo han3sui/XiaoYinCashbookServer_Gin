@@ -85,7 +85,7 @@ func ListByParams(uid uint, params SearchParams, paginate bool) (list []Detail, 
 		sdb = sdb.Where("claim = ?", params.Claim)
 	}
 	if paginate {
-		err = sdb.Scopes(model.Paginate(params.PageNo, params.PageSize)).Order("time desc,create_time desc").Preload("Category").Preload("Account").Preload("IncomeAccount").Find(&list).Error
+		err = sdb.Scopes(model.Paginate(params.PageNo, params.PageSize)).Preload("Category").Preload("Account").Preload("IncomeAccount").Order("time desc,create_time desc").Find(&list).Error
 	} else {
 		err = sdb.Preload("Category").Preload("Account").Preload("IncomeAccount").Order("time desc,create_time desc").Find(&list).Error
 	}

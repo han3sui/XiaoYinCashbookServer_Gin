@@ -86,53 +86,87 @@ type AccountInfo struct {
 }
 
 //条件查询
-func ListByParams(uid uint, params SearchParams) (list *TotalData, err error) {
-	r, err := detail.ListByParams(uid, params, false)
+func ListByParams(uid uint, params SearchParams) (list []*List, err error) {
+	r, err := detail.ListByParams(uid, params, true)
 	if err != nil {
 		return
 	}
-	data := make(map[string]*Data)
-	list = new(TotalData)
 	for _, v := range r {
-		_, ok := data[v.Time]
-		if !ok {
-			data[v.Time] = &Data{
-				Time: v.Time,
-			}
-		}
-		if *v.Claim != 2 {
-			if v.Direction == 1 {
-				list.TotalIncome = util.FloatAdd(list.TotalIncome, v.Money, 2)
-				data[v.Time].Income = util.FloatAdd(data[v.Time].Income, v.Money, 2)
-			}
-			if v.Direction == 2 {
-				list.TotalOut = util.FloatAdd(list.TotalOut, v.Money, 2)
-				data[v.Time].Out = util.FloatAdd(data[v.Time].Out, v.Money, 2)
-			}
-		}
-		data[v.Time].List = append(data[v.Time].List, List{
-			Id:            v.ID,
-			Money:         v.Money,
-			Time:          v.Time,
-			Remark:        v.Remark,
-			Direction:     v.Direction,
-			UpdateTime:    v.UpdateTime,
-			Claim:         *v.Claim,
-			Account:       AccountInfo{Id: v.Account.ID, Name: v.Account.Name, Icon: v.Account.Icon},
-			IncomeAccount: AccountInfo{Id: v.IncomeAccount.ID, Name: v.IncomeAccount.Name, Icon: v.IncomeAccount.Icon},
-			Category:      CategoryInfo{Id: v.Category.ID, Name: v.Category.Name, Icon: v.Category.Icon},
+		list = append(list, &List{
+			Id:         v.ID,
+			Money:      v.Money,
+			Time:       v.Time,
+			Remark:     v.Remark,
+			Direction:  v.Direction,
+			Claim:      *v.Claim,
+			UpdateTime: v.UpdateTime,
+			Account: AccountInfo{
+				Id:   v.Account.ID,
+				Name: v.Account.Name,
+				Icon: v.Account.Icon,
+			},
+			IncomeAccount: AccountInfo{
+				Id:   v.IncomeAccount.ID,
+				Name: v.IncomeAccount.Name,
+				Icon: v.IncomeAccount.Icon,
+			},
+			Category: CategoryInfo{
+				Id:   v.Category.ID,
+				Name: v.Category.Name,
+				Icon: v.Category.Icon,
+			},
 		})
-	}
-	var keys []string
-	for k := range data {
-		keys = append(keys, k)
-	}
-	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
-	for _, v := range keys {
-		list.Data = append(list.Data, *data[v])
 	}
 	return
 }
+
+//func ListByParams(uid uint, params SearchParams) (list *TotalData, err error) {
+//	r, err := detail.ListByParams(uid, params, true)
+//	if err != nil {
+//		return
+//	}
+//	data := make(map[string]*Data)
+//	list = new(TotalData)
+//	for _, v := range r {
+//		_, ok := data[v.Time]
+//		if !ok {
+//			data[v.Time] = &Data{
+//				Time: v.Time,
+//			}
+//		}
+//		if *v.Claim != 2 {
+//			if v.Direction == 1 {
+//				list.TotalIncome = util.FloatAdd(list.TotalIncome, v.Money, 2)
+//				data[v.Time].Income = util.FloatAdd(data[v.Time].Income, v.Money, 2)
+//			}
+//			if v.Direction == 2 {
+//				list.TotalOut = util.FloatAdd(list.TotalOut, v.Money, 2)
+//				data[v.Time].Out = util.FloatAdd(data[v.Time].Out, v.Money, 2)
+//			}
+//		}
+//		data[v.Time].List = append(data[v.Time].List, List{
+//			Id:            v.ID,
+//			Money:         v.Money,
+//			Time:          v.Time,
+//			Remark:        v.Remark,
+//			Direction:     v.Direction,
+//			UpdateTime:    v.UpdateTime,
+//			Claim:         *v.Claim,
+//			Account:       AccountInfo{Id: v.Account.ID, Name: v.Account.Name, Icon: v.Account.Icon},
+//			IncomeAccount: AccountInfo{Id: v.IncomeAccount.ID, Name: v.IncomeAccount.Name, Icon: v.IncomeAccount.Icon},
+//			Category:      CategoryInfo{Id: v.Category.ID, Name: v.Category.Name, Icon: v.Category.Icon},
+//		})
+//	}
+//	var keys []string
+//	for k := range data {
+//		keys = append(keys, k)
+//	}
+//	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
+//	for _, v := range keys {
+//		list.Data = append(list.Data, *data[v])
+//	}
+//	return
+//}
 
 //查询报销账单
 func ListClaim(uid uint, claim int) (list []*List, err error) {
