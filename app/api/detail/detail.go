@@ -146,12 +146,12 @@ func Save(c *gin.Context) {
 		return
 	}
 	req.UserId = uid
-	id, err := detail.Save(&req)
+	list, err := detail.Save(&req)
 	if err != nil {
 		exception.Common(c, 121512, err)
 		return
 	}
-	c.JSON(200, id)
+	c.JSON(200, list[0])
 }
 
 func Update(c *gin.Context) {
@@ -178,12 +178,12 @@ func Update(c *gin.Context) {
 		return
 	}
 	req.ID = uint(id)
-	err = detail.Update(&req)
+	list, err := detail.Update(&req)
 	if err != nil {
 		exception.Common(c, 121614, err)
 		return
 	}
-	c.Status(200)
+	c.JSON(200, list[0])
 }
 
 func Del(c *gin.Context) {

@@ -120,54 +120,6 @@ func ListByParams(uid uint, params SearchParams) (list []*List, err error) {
 	return
 }
 
-//func ListByParams(uid uint, params SearchParams) (list *TotalData, err error) {
-//	r, err := detail.ListByParams(uid, params, true)
-//	if err != nil {
-//		return
-//	}
-//	data := make(map[string]*Data)
-//	list = new(TotalData)
-//	for _, v := range r {
-//		_, ok := data[v.Time]
-//		if !ok {
-//			data[v.Time] = &Data{
-//				Time: v.Time,
-//			}
-//		}
-//		if *v.Claim != 2 {
-//			if v.Direction == 1 {
-//				list.TotalIncome = util.FloatAdd(list.TotalIncome, v.Money, 2)
-//				data[v.Time].Income = util.FloatAdd(data[v.Time].Income, v.Money, 2)
-//			}
-//			if v.Direction == 2 {
-//				list.TotalOut = util.FloatAdd(list.TotalOut, v.Money, 2)
-//				data[v.Time].Out = util.FloatAdd(data[v.Time].Out, v.Money, 2)
-//			}
-//		}
-//		data[v.Time].List = append(data[v.Time].List, List{
-//			Id:            v.ID,
-//			Money:         v.Money,
-//			Time:          v.Time,
-//			Remark:        v.Remark,
-//			Direction:     v.Direction,
-//			UpdateTime:    v.UpdateTime,
-//			Claim:         *v.Claim,
-//			Account:       AccountInfo{Id: v.Account.ID, Name: v.Account.Name, Icon: v.Account.Icon},
-//			IncomeAccount: AccountInfo{Id: v.IncomeAccount.ID, Name: v.IncomeAccount.Name, Icon: v.IncomeAccount.Icon},
-//			Category:      CategoryInfo{Id: v.Category.ID, Name: v.Category.Name, Icon: v.Category.Icon},
-//		})
-//	}
-//	var keys []string
-//	for k := range data {
-//		keys = append(keys, k)
-//	}
-//	sort.Sort(sort.Reverse(sort.StringSlice(keys)))
-//	for _, v := range keys {
-//		list.Data = append(list.Data, *data[v])
-//	}
-//	return
-//}
-
 //查询报销账单
 func ListClaim(uid uint, claim int) (list []*List, err error) {
 	r, err := detail.ListClaim(uid, claim)
@@ -347,18 +299,26 @@ func getChartTree(data []Info, categoryList []category.Info, totalMoney float64)
 	return
 }
 
-func Save(data *Info) (id uint, err error) {
-	id, err = detail.Save(data)
+func Save(data *Info) (list []*List, err error) {
+	id, err := detail.Save(data)
 	if err != nil {
 		err = errors.Wrap(err, "账单保存失败")
+	}
+	list, err = ListByParams(data.UserId, SearchParams{Id: id})
+	if err != nil {
+		err = errors.Wrap(err, "查询账单失败")
 	}
 	return
 }
 
-func Update(data *Info) (err error) {
+func Update(data *Info) (list []*List, err error) {
 	err = detail.Update(data)
 	if err != nil {
 		err = errors.Wrap(err, "账单更新失败")
+	}
+	list, err = ListByParams(data.UserId, SearchParams{Id: data.ID})
+	if err != nil {
+		err = errors.Wrap(err, "查询账单失败")
 	}
 	return
 }
@@ -386,20 +346,3 @@ func AllDaysCount(uid uint) (count int64, err error) {
 	err = db.DB.Model(&Info{}).Where("user_id = ?", uid).Group("time").Count(&count).Error
 	return
 }
-
-//func ListByParams(uid uint, params SearchParams) (list []List, err error) {
-//	r, err := detail.ListByParams(uid, params, false)
-//	for _, v := range r {
-//		list = append(list, List{
-//			Id:            v.ID,
-//			Money:         v.Money,
-//			Time:          v.Time,
-//			Remark:        v.Remark,
-//			Direction:     v.Direction,
-//			Account:       AccountInfo{Id: v.Account.ID, Name: v.Account.Name, Icon: v.Account.Icon},
-//			Category:      CategoryInfo{Id: v.Category.ID, Name: v.Category.Name, Icon: v.Category.Icon},
-//			IncomeAccount: AccountInfo{Id: v.IncomeAccount.ID, Name: v.IncomeAccount.Name, Icon: v.IncomeAccount.Icon},
-//		})
-//	}
-//	return
-//}

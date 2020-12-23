@@ -38,6 +38,7 @@ type SearchParams struct {
 	Month      int    `json:"month" form:"month"`
 	CheckTime  int    `json:"check_time" form:"check_time"`
 	Claim      int    `json:"claim" form:"claim"`
+	Id         uint   `json:"id"`
 	PageNo     int    `json:"page_no" form:"page_no"`
 	PageSize   int    `json:"page_size" form:"page_size"`
 }
@@ -83,6 +84,9 @@ func ListByParams(uid uint, params SearchParams, paginate bool) (list []Detail, 
 	}
 	if params.Claim != 0 {
 		sdb = sdb.Where("claim = ?", params.Claim)
+	}
+	if params.Id != 0 {
+		sdb = sdb.Where("id = ?", params.Id)
 	}
 	if paginate {
 		err = sdb.Scopes(model.Paginate(params.PageNo, params.PageSize)).Preload("Category").Preload("Account").Preload("IncomeAccount").Order("time desc,create_time desc").Find(&list).Error
