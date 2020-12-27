@@ -133,17 +133,17 @@ func GetManageList(uid uint) (list []*ManageList, err error) {
 			if v1.AccountId == v.ID {
 				switch v1.Direction {
 				case 1:
-					incomeMoney = util.FloatAdd(incomeMoney, v1.Money, 2)
+					incomeMoney = util.FloatAdd(incomeMoney, *v1.Money, 2)
 				case 2:
-					outMoney = util.FloatAdd(outMoney, v1.Money, 2)
+					outMoney = util.FloatAdd(outMoney, *v1.Money, 2)
 				case 3:
-					outMoney = util.FloatAdd(outMoney, v1.Money, 2)
+					outMoney = util.FloatAdd(outMoney, *v1.Money, 2)
 				default:
 					fmt.Println("unknown")
 				}
 			}
 			if v1.IncomeAccountId == v.ID {
-				incomeMoney = util.FloatAdd(incomeMoney, v1.Money, 2)
+				incomeMoney = util.FloatAdd(incomeMoney, *v1.Money, 2)
 			}
 		}
 		balance := util.FloatSub(util.FloatAdd(*v.Balance, incomeMoney, 2), outMoney, 2)

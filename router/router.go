@@ -46,6 +46,7 @@ func InitRouter() http.Handler {
 		}
 		detailGroup := v2.Group("/details")
 		{
+			detailGroup.GET("/money", detail.ListMoneyByParams)
 			detailGroup.GET("", detail.ListByParams)
 			detailGroup.GET("/bill/:year", detail.Bill)
 			detailGroup.GET("/chart", detail.Chart)

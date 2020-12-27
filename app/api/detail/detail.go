@@ -237,3 +237,28 @@ func ListClaim(c *gin.Context) {
 		c.JSON(200, r)
 	}
 }
+
+func ListMoneyByParams(c *gin.Context) {
+	uid, err := util.GetUid(c)
+	if err != nil {
+		exception.Common(c, 121910, err)
+		return
+	}
+	var req detail.SearchParams
+	err = c.ShouldBindQuery(&req)
+	if err != nil {
+		exception.Common(c, 121911, errors.Wrap(err, "参数绑定失败"))
+		return
+	}
+	err = validate.Validate.Struct(req)
+	if err != nil {
+		exception.Common(c, 121912, err)
+		return
+	}
+	data, err := detail.ListMoneyByParams(uid, req)
+	if err != nil {
+		exception.Common(c, 121913, errors.Wrap(err, "账单总额查询出错"))
+		return
+	}
+	c.JSON(200, data)
+}

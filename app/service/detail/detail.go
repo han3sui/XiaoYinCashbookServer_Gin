@@ -15,6 +15,7 @@ type Info = detail.Detail
 
 //搜索条件
 type SearchParams = detail.SearchParams
+type ListMoney = detail.ListMoney
 
 //图表数据实体
 type ChartData struct {
@@ -85,6 +86,15 @@ type AccountInfo struct {
 	Icon string `json:"icon"`
 }
 
+func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err error) {
+	data, err = detail.ListMoneyByParams(uid, params)
+	if err != nil {
+		err = errors.Wrap(err, "获取总额失败")
+		return
+	}
+	return
+}
+
 //条件查询
 func ListByParams(uid uint, params SearchParams) (list []*List, err error) {
 	r, err := detail.ListByParams(uid, params, true)
@@ -94,9 +104,9 @@ func ListByParams(uid uint, params SearchParams) (list []*List, err error) {
 	for _, v := range r {
 		list = append(list, &List{
 			Id:         v.ID,
-			Money:      v.Money,
+			Money:      *v.Money,
 			Time:       v.Time,
-			Remark:     v.Remark,
+			Remark:     *v.Remark,
 			Direction:  v.Direction,
 			Claim:      *v.Claim,
 			UpdateTime: v.UpdateTime,
@@ -129,9 +139,9 @@ func ListClaim(uid uint, claim int) (list []*List, err error) {
 	for _, v := range r {
 		list = append(list, &List{
 			Id:         v.ID,
-			Money:      v.Money,
+			Money:      *v.Money,
 			Time:       v.Time,
-			Remark:     v.Remark,
+			Remark:     *v.Remark,
 			Claim:      *v.Claim,
 			Direction:  v.Direction,
 			UpdateTime: v.UpdateTime,
@@ -165,10 +175,10 @@ func Bill(uid uint, params SearchParams) (list *BillData, err error) {
 	for _, v := range r {
 		if *v.Claim != 2 {
 			if v.Direction == 2 {
-				list.TotalOut = util.FloatAdd(list.TotalOut, v.Money, 2)
+				list.TotalOut = util.FloatAdd(list.TotalOut, *v.Money, 2)
 			}
 			if v.Direction == 1 {
-				list.TotalIncome = util.FloatAdd(list.TotalIncome, v.Money, 2)
+				list.TotalIncome = util.FloatAdd(list.TotalIncome, *v.Money, 2)
 			}
 			for _, v1 := range months {
 				_, ok := data[v1]
@@ -179,10 +189,10 @@ func Bill(uid uint, params SearchParams) (list *BillData, err error) {
 				}
 				if v.Time[:7] == (strconv.Itoa(params.Year) + "-" + v1) {
 					if v.Direction == 2 {
-						data[v1].OutMoney = util.FloatAdd(data[v1].OutMoney, v.Money, 2)
+						data[v1].OutMoney = util.FloatAdd(data[v1].OutMoney, *v.Money, 2)
 					}
 					if v.Direction == 1 {
-						data[v1].IncomeMoney = util.FloatAdd(data[v1].IncomeMoney, v.Money, 2)
+						data[v1].IncomeMoney = util.FloatAdd(data[v1].IncomeMoney, *v.Money, 2)
 					}
 				}
 			}
@@ -227,11 +237,11 @@ func Chart(uid uint, params SearchParams) (list *ChartData, err error) {
 		if *v.Claim != 2 {
 			if v.Direction == 2 {
 				outSlice = append(outSlice, v)
-				list.TotalOut = util.FloatAdd(list.TotalOut, v.Money, 2)
+				list.TotalOut = util.FloatAdd(list.TotalOut, *v.Money, 2)
 			}
 			if v.Direction == 1 {
 				incomeSlice = append(incomeSlice, v)
-				list.TotalIncome = util.FloatAdd(list.TotalIncome, v.Money, 2)
+				list.TotalIncome = util.FloatAdd(list.TotalIncome, *v.Money, 2)
 			}
 		}
 	}
@@ -254,21 +264,21 @@ func getChartTree(data []Info, categoryList []category.Info, totalMoney float64)
 			list = append(list, ChartDataDetail{
 				Id:      parentDetail.Id,
 				Name:    parentDetail.Name,
-				Money:   v.Money,
-				Percent: util.FloatMul(util.FloatDiv(v.Money, totalMoney, 4), 100, 2),
+				Money:   *v.Money,
+				Percent: util.FloatMul(util.FloatDiv(*v.Money, totalMoney, 4), 100, 2),
 				Nodes: []ChartDataDetail{
 					{
 						Id:      v.CategoryId,
 						Name:    nodeDetail.Name,
 						Icon:    nodeDetail.Icon,
-						Money:   v.Money,
-						Percent: util.FloatMul(util.FloatDiv(v.Money, totalMoney, 4), 100, 2),
+						Money:   *v.Money,
+						Percent: util.FloatMul(util.FloatDiv(*v.Money, totalMoney, 4), 100, 2),
 					},
 				},
 			})
 		} else {
 			//如果该明细父分类已存在，则父分类的金额叠加，并重新计算百分比
-			list[*key].Money = util.FloatAdd(list[*key].Money, v.Money, 2)
+			list[*key].Money = util.FloatAdd(list[*key].Money, *v.Money, 2)
 			list[*key].Percent = util.FloatMul(util.FloatDiv(list[*key].Money, totalMoney, 4), 100, 2)
 			//获取该明细在所属子分类中的切片下标
 			key1 := GetDetailKey(v.CategoryId, list[*key].Nodes)
@@ -278,12 +288,12 @@ func getChartTree(data []Info, categoryList []category.Info, totalMoney float64)
 					Id:      v.CategoryId,
 					Name:    nodeDetail.Name,
 					Icon:    nodeDetail.Icon,
-					Money:   v.Money,
-					Percent: util.FloatMul(util.FloatDiv(v.Money, totalMoney, 4), 100, 2),
+					Money:   *v.Money,
+					Percent: util.FloatMul(util.FloatDiv(*v.Money, totalMoney, 4), 100, 2),
 				})
 			} else {
 				//如果该明细存在于所属子分类，则子分类的金额叠加，并重新计算百分比
-				list[*key].Nodes[*key1].Money = util.FloatAdd(list[*key].Nodes[*key1].Money, v.Money, 2)
+				list[*key].Nodes[*key1].Money = util.FloatAdd(list[*key].Nodes[*key1].Money, *v.Money, 2)
 				list[*key].Nodes[*key1].Percent = util.FloatMul(util.FloatDiv(list[*key].Nodes[*key1].Money, totalMoney, 4), 100, 2)
 				//子分类切片按照金额重新排序
 				sort.SliceStable(list[*key].Nodes, func(i, j int) bool {
@@ -303,10 +313,12 @@ func Save(data *Info) (list []*List, err error) {
 	id, err := detail.Save(data)
 	if err != nil {
 		err = errors.Wrap(err, "账单保存失败")
+		return
 	}
 	list, err = ListByParams(data.UserId, SearchParams{Id: id})
 	if err != nil {
 		err = errors.Wrap(err, "查询账单失败")
+		return
 	}
 	return
 }
@@ -315,10 +327,12 @@ func Update(data *Info) (list []*List, err error) {
 	err = detail.Update(data)
 	if err != nil {
 		err = errors.Wrap(err, "账单更新失败")
+		return
 	}
 	list, err = ListByParams(data.UserId, SearchParams{Id: data.ID})
 	if err != nil {
 		err = errors.Wrap(err, "查询账单失败")
+		return
 	}
 	return
 }
@@ -327,6 +341,7 @@ func Del(id uint, uid uint) (err error) {
 	err = detail.Del(id, uid)
 	if err != nil {
 		err = errors.Wrap(err, "明细删除失败")
+		return
 	}
 	return
 }

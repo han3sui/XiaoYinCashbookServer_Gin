@@ -11,13 +11,13 @@ import (
 
 type Detail struct {
 	model.BaseModel
-	Money           float64           `json:"money"`
+	Money           *float64          `json:"money"`
 	UserId          uint              `json:"user_id"`
 	AccountId       uint              `json:"account_id"`
 	IncomeAccountId uint              `json:"income_account_id"`
 	CategoryId      uint              `json:"category_id"`
 	Time            string            `json:"time"`
-	Remark          string            `json:"remark"`
+	Remark          *string           `json:"remark"`
 	Direction       uint              `json:"direction"`
 	Claim           *int              `json:"claim"`
 	Category        category.Category `json:"-" gorm:"foreignKey:ID;references:CategoryId"`
@@ -43,6 +43,11 @@ type SearchParams struct {
 	PageSize   int    `json:"page_size" form:"page_size"`
 }
 
+type ListMoney struct {
+	Direction int     `json:"direction"`
+	Total     float64 `json:"total"`
+}
+
 func ListByUid(uid uint) (list []Detail, err error) {
 	err = db.DB.Where("user_id = ?", uid).Find(&list).Error
 	return
@@ -50,6 +55,30 @@ func ListByUid(uid uint) (list []Detail, err error) {
 
 func ListClaim(uid uint, claim int) (list []Detail, err error) {
 	err = db.DB.Where("user_id = ? AND claim = ?", uid, claim).Preload("Category").Preload("Account").Find(&list).Error
+	return
+}
+
+func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err error) {
+	var sdb = db.DB
+	sdb = sdb.Where("user_id = ?", uid)
+	if params.AccountId != 0 {
+		sdb = sdb.Where(db.DB.Where("account_id = ?", params.AccountId).Or("income_account_id = ?", params.AccountId))
+	}
+	if params.Year != 0 {
+		year := strconv.Itoa(params.Year)
+		var timeStart string
+		var timeEnd string
+		if params.Month != 0 {
+			date := util.GetMonthStartAndEnd(year, strconv.Itoa(params.Month))
+			timeStart = date["start"]
+			timeEnd = date["end"]
+		} else {
+			timeStart = util.GetMonthStartAndEnd(year, "1")["start"]
+			timeEnd = util.GetMonthStartAndEnd(year, "12")["end"]
+		}
+		sdb.Where("time >= ? AND time <= ?", timeStart, timeEnd)
+	}
+	err = sdb.Model(&Detail{}).Select("direction, sum(money) as total").Group("direction").Find(&data).Error
 	return
 }
 
