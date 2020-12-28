@@ -1,7 +1,7 @@
-package check
+package api
 
 import (
-	"xiaoyin/app/service/check"
+	"xiaoyin/app/service"
 	"xiaoyin/lib/exception"
 	"xiaoyin/lib/util"
 
@@ -9,13 +9,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-func List(c *gin.Context) {
+func ListCheck(c *gin.Context) {
 	uid, err := util.GetUid(c)
 	if err != nil {
 		exception.Common(c, 161010, err)
 		return
 	}
-	r, err := check.List(uid)
+	r, err := service.ListCheck(uid)
 	if err != nil {
 		exception.Common(c, 161011, errors.Wrap(err, "获取核账记录失败"))
 		return

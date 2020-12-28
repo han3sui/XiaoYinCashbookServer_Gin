@@ -1,8 +1,8 @@
-package detail
+package api
 
 import (
 	"strconv"
-	"xiaoyin/app/service/detail"
+	"xiaoyin/app/service"
 	"xiaoyin/lib/exception"
 	"xiaoyin/lib/util"
 	"xiaoyin/lib/validate"
@@ -18,7 +18,7 @@ func GetAllDays(c *gin.Context) {
 		exception.Common(c, 121010, err)
 		return
 	}
-	r, err := detail.AllDaysCount(uid)
+	r, err := service.AllDaysCount(uid)
 	if err != nil {
 		exception.Common(c, 121011, errors.Wrap(err, "获取记账天数失败"))
 		return
@@ -41,7 +41,7 @@ func IsExistUncheck(c *gin.Context) {
 		exception.Common(c, 121112, errors.New("核账时间错误"))
 		return
 	}
-	boolean, err := detail.IsExistUncheck(uid, uint(checkTime))
+	boolean, err := service.IsExistUncheck(uid, uint(checkTime))
 	if err != nil {
 		exception.Common(c, 121113, errors.Wrap(err, "获取未核账账单失败"))
 		return
@@ -54,7 +54,7 @@ func IsExistUncheck(c *gin.Context) {
 }
 
 func Bill(c *gin.Context) {
-	var params detail.SearchParams
+	var params service.SearchParams
 	uid, err := util.GetUid(c)
 	if err != nil {
 		exception.Common(c, 121210, err)
@@ -66,7 +66,7 @@ func Bill(c *gin.Context) {
 		return
 	}
 	params.Year = year
-	res, err := detail.Bill(uid, params)
+	res, err := service.Bill(uid, params)
 	if err != nil {
 		exception.Common(c, 121212, errors.Wrap(err, "获取账单失败"))
 		return
@@ -80,7 +80,7 @@ func Chart(c *gin.Context) {
 		exception.Common(c, 121310, err)
 		return
 	}
-	var req detail.SearchParams
+	var req service.SearchParams
 	err = c.ShouldBindQuery(&req)
 	if err != nil {
 		exception.Common(c, 121311, errors.Wrap(err, "参数绑定失败"))
@@ -91,7 +91,7 @@ func Chart(c *gin.Context) {
 		exception.Common(c, 121312, err)
 		return
 	}
-	list, err := detail.Chart(uid, req)
+	list, err := service.Chart(uid, req)
 	if err != nil {
 		exception.Common(c, 121313, errors.Wrap(err, "图表获取失败"))
 		return
@@ -99,13 +99,13 @@ func Chart(c *gin.Context) {
 	c.JSON(200, list)
 }
 
-func ListByParams(c *gin.Context) {
+func ListDetailsByParams(c *gin.Context) {
 	uid, err := util.GetUid(c)
 	if err != nil {
 		exception.Common(c, 121410, err)
 		return
 	}
-	var req detail.SearchParams
+	var req service.SearchParams
 	err = c.ShouldBindQuery(&req)
 	if err != nil {
 		exception.Common(c, 121411, errors.Wrap(err, "参数绑定失败"))
@@ -116,7 +116,7 @@ func ListByParams(c *gin.Context) {
 		exception.Common(c, 121412, err)
 		return
 	}
-	list, err := detail.ListByParams(uid, req)
+	list, err := service.ListByParams(uid, req)
 	if err != nil {
 		exception.Common(c, 121413, errors.Wrap(err, "账单查询出错"))
 		return
@@ -128,8 +128,8 @@ func ListByParams(c *gin.Context) {
 	}
 }
 
-func Save(c *gin.Context) {
-	var req detail.Info
+func SaveDetail(c *gin.Context) {
+	var req service.Detail
 	err := c.BindJSON(&req)
 	if err != nil {
 		exception.Common(c, 121510, errors.Wrap(err, "参数绑定失败"))
@@ -146,7 +146,7 @@ func Save(c *gin.Context) {
 		return
 	}
 	req.UserId = uid
-	list, err := detail.Save(&req)
+	list, err := service.SaveDetail(&req)
 	if err != nil {
 		exception.Common(c, 121512, err)
 		return
@@ -154,8 +154,8 @@ func Save(c *gin.Context) {
 	c.JSON(200, list[0])
 }
 
-func Update(c *gin.Context) {
-	var req detail.Info
+func UpdateDetail(c *gin.Context) {
+	var req service.Detail
 	err := c.BindJSON(&req)
 	if err != nil {
 		exception.Common(c, 121610, errors.Wrap(err, "参数绑定失败"))
@@ -178,7 +178,7 @@ func Update(c *gin.Context) {
 		return
 	}
 	req.ID = uint(id)
-	list, err := detail.Update(&req)
+	list, err := service.UpdateDetail(&req)
 	if err != nil {
 		exception.Common(c, 121614, err)
 		return
@@ -186,7 +186,7 @@ func Update(c *gin.Context) {
 	c.JSON(200, list[0])
 }
 
-func Del(c *gin.Context) {
+func DelDetail(c *gin.Context) {
 	uid, err := util.GetUid(c)
 	if err != nil {
 		exception.Common(c, 121710, err)
@@ -201,7 +201,7 @@ func Del(c *gin.Context) {
 		exception.Common(c, 121712, err)
 		return
 	}
-	err = detail.Del(uint(id), uid)
+	err = service.Del(uint(id), uid)
 	if err != nil {
 		exception.Common(c, 121713, errors.Wrap(err, "删除失败"))
 		return
@@ -226,7 +226,7 @@ func ListClaim(c *gin.Context) {
 		exception.Common(c, 121813, err)
 		return
 	}
-	r, err := detail.ListClaim(uid, int(claim))
+	r, err := service.ListClaim(uid, int(claim))
 	if err != nil {
 		exception.Common(c, 121811, errors.Wrap(err, "获取报销账单失败"))
 		return
@@ -244,7 +244,7 @@ func ListMoneyByParams(c *gin.Context) {
 		exception.Common(c, 121910, err)
 		return
 	}
-	var req detail.SearchParams
+	var req service.SearchParams
 	err = c.ShouldBindQuery(&req)
 	if err != nil {
 		exception.Common(c, 121911, errors.Wrap(err, "参数绑定失败"))
@@ -255,7 +255,7 @@ func ListMoneyByParams(c *gin.Context) {
 		exception.Common(c, 121912, err)
 		return
 	}
-	data, err := detail.ListMoneyByParams(uid, req)
+	data, err := service.ListMoneyByParams(uid, req)
 	if err != nil {
 		exception.Common(c, 121913, errors.Wrap(err, "账单总额查询出错"))
 		return

@@ -3,7 +3,7 @@ package middleware
 import (
 	"strings"
 	"time"
-	"xiaoyin/app/service/token"
+	"xiaoyin/app/service"
 	"xiaoyin/lib/exception"
 
 	"github.com/pkg/errors"
@@ -14,7 +14,7 @@ import (
 func Jwt() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr := strings.Replace(c.GetHeader("Authorization"), "Bearer ", "", -1)
-		tokenInfo, err := token.Parse(tokenStr)
+		tokenInfo, err := service.ParseToken(tokenStr)
 		if err != nil {
 			err = errors.Wrap(err, "用户校验失败")
 			exception.Common(c, 9999, err)

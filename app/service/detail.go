@@ -1,21 +1,20 @@
-package detail
+package service
 
 import (
 	"sort"
 	"strconv"
-	"xiaoyin/app/model/detail"
-	"xiaoyin/app/service/category"
+	"xiaoyin/app/model"
 	"xiaoyin/lib/db"
 	"xiaoyin/lib/util"
 
 	"github.com/pkg/errors"
 )
 
-type Info = detail.Detail
+type Detail = model.Detail
 
 //搜索条件
-type SearchParams = detail.SearchParams
-type ListMoney = detail.ListMoney
+type SearchParams = model.SearchParams
+type ListMoney = model.ListMoney
 
 //图表数据实体
 type ChartData struct {
@@ -69,25 +68,26 @@ type List struct {
 	Direction     uint         `json:"direction"`
 	Claim         int          `json:"claim"`
 	UpdateTime    int64        `json:"update_time"`
-	Account       AccountInfo  `json:"account"`
-	IncomeAccount AccountInfo  `json:"income_account"`
-	Category      CategoryInfo `json:"category"`
+	Account       accountInfo  `json:"account"`
+	IncomeAccount accountInfo  `json:"income_account"`
+	Category      categoryInfo `json:"category"`
 }
 
-type CategoryInfo struct {
+type categoryInfo struct {
 	Id   uint   `json:"id"`
 	Name string `json:"name"`
 	Icon string `json:"icon"`
 }
 
-type AccountInfo struct {
+type accountInfo struct {
 	Id   uint   `json:"id"`
 	Name string `json:"name"`
 	Icon string `json:"icon"`
 }
 
+//根据月份获取总支出/总收入
 func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err error) {
-	data, err = detail.ListMoneyByParams(uid, params)
+	data, err = model.ListMoneyByParams(uid, params)
 	if err != nil {
 		err = errors.Wrap(err, "获取总额失败")
 		return
@@ -97,7 +97,7 @@ func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err err
 
 //条件查询
 func ListByParams(uid uint, params SearchParams) (list []*List, err error) {
-	r, err := detail.ListByParams(uid, params, true)
+	r, err := model.ListDetailsByParams(uid, params, true)
 	if err != nil {
 		return
 	}
@@ -110,17 +110,17 @@ func ListByParams(uid uint, params SearchParams) (list []*List, err error) {
 			Direction:  v.Direction,
 			Claim:      *v.Claim,
 			UpdateTime: v.UpdateTime,
-			Account: AccountInfo{
+			Account: accountInfo{
 				Id:   v.Account.ID,
 				Name: v.Account.Name,
 				Icon: v.Account.Icon,
 			},
-			IncomeAccount: AccountInfo{
+			IncomeAccount: accountInfo{
 				Id:   v.IncomeAccount.ID,
 				Name: v.IncomeAccount.Name,
 				Icon: v.IncomeAccount.Icon,
 			},
-			Category: CategoryInfo{
+			Category: categoryInfo{
 				Id:   v.Category.ID,
 				Name: v.Category.Name,
 				Icon: v.Category.Icon,
@@ -132,7 +132,7 @@ func ListByParams(uid uint, params SearchParams) (list []*List, err error) {
 
 //查询报销账单
 func ListClaim(uid uint, claim int) (list []*List, err error) {
-	r, err := detail.ListClaim(uid, claim)
+	r, err := model.ListClaim(uid, claim)
 	if err != nil {
 		return
 	}
@@ -145,12 +145,12 @@ func ListClaim(uid uint, claim int) (list []*List, err error) {
 			Claim:      *v.Claim,
 			Direction:  v.Direction,
 			UpdateTime: v.UpdateTime,
-			Account: AccountInfo{
+			Account: accountInfo{
 				Id:   v.Account.ID,
 				Name: v.Account.Name,
 				Icon: v.Account.Icon,
 			},
-			Category: CategoryInfo{
+			Category: categoryInfo{
 				Id:   v.Category.ID,
 				Name: v.Category.Name,
 				Icon: v.Category.Icon,
@@ -165,7 +165,7 @@ func ListClaim(uid uint, claim int) (list []*List, err error) {
 
 //获取 年度/月份 账单数据
 func Bill(uid uint, params SearchParams) (list *BillData, err error) {
-	r, err := detail.ListByParams(uid, params, false)
+	r, err := model.ListDetailsByParams(uid, params, false)
 	if err != nil {
 		return
 	}
@@ -222,17 +222,17 @@ func GetDetailKey(id uint, list []ChartDataDetail) (key *int) {
 
 //获取账单图表
 func Chart(uid uint, params SearchParams) (list *ChartData, err error) {
-	r, err := detail.ListByParams(uid, params, false)
+	r, err := model.ListDetailsByParams(uid, params, false)
 	if err != nil {
 		return
 	}
-	categoryList, err := category.ListByUid(uid)
+	categoryList, err := ListByUid(uid)
 	if err != nil {
 		return
 	}
 	list = new(ChartData)
-	var outSlice []Info
-	var incomeSlice []Info
+	var outSlice []Detail
+	var incomeSlice []Detail
 	for _, v := range r {
 		if *v.Claim != 2 {
 			if v.Direction == 2 {
@@ -251,12 +251,12 @@ func Chart(uid uint, params SearchParams) (list *ChartData, err error) {
 }
 
 //生成图表需要的树结构
-func getChartTree(data []Info, categoryList []category.Info, totalMoney float64) (list []ChartDataDetail) {
+func getChartTree(data []Detail, categoryList []Category, totalMoney float64) (list []ChartDataDetail) {
 	for _, v := range data {
 		//获取父分类详情
-		parentDetail := category.GetParent(v.CategoryId, categoryList)
+		parentDetail := GetParent(v.CategoryId, categoryList)
 		//获取当前分类详情
-		nodeDetail := category.GetDetail(v.CategoryId, categoryList)
+		nodeDetail := GetDetail(v.CategoryId, categoryList)
 		//获取父分类的切片下标
 		key := GetDetailKey(parentDetail.Id, list)
 		if key == nil {
@@ -309,8 +309,8 @@ func getChartTree(data []Info, categoryList []category.Info, totalMoney float64)
 	return
 }
 
-func Save(data *Info) (list []*List, err error) {
-	id, err := detail.Save(data)
+func SaveDetail(data *Detail) (list []*List, err error) {
+	id, err := data.Save()
 	if err != nil {
 		err = errors.Wrap(err, "账单保存失败")
 		return
@@ -323,8 +323,8 @@ func Save(data *Info) (list []*List, err error) {
 	return
 }
 
-func Update(data *Info) (list []*List, err error) {
-	err = detail.Update(data)
+func UpdateDetail(data *Detail) (list []*List, err error) {
+	err = data.Update()
 	if err != nil {
 		err = errors.Wrap(err, "账单更新失败")
 		return
@@ -338,7 +338,7 @@ func Update(data *Info) (list []*List, err error) {
 }
 
 func Del(id uint, uid uint) (err error) {
-	err = detail.Del(id, uid)
+	err = model.DelDetailById(id, uid)
 	if err != nil {
 		err = errors.Wrap(err, "明细删除失败")
 		return
@@ -348,7 +348,7 @@ func Del(id uint, uid uint) (err error) {
 
 func IsExistUncheck(uid uint, checkTime uint) (boolean bool, err error) {
 	var count int64
-	err = db.DB.Model(&Info{}).Where("user_id = ? AND update_time >= ?", uid, checkTime).Count(&count).Error
+	err = db.DB.Model(&Detail{}).Where("user_id = ? AND update_time >= ?", uid, checkTime).Count(&count).Error
 	if count == 0 {
 		boolean = false
 	} else {
@@ -358,6 +358,6 @@ func IsExistUncheck(uid uint, checkTime uint) (boolean bool, err error) {
 }
 
 func AllDaysCount(uid uint) (count int64, err error) {
-	err = db.DB.Model(&Info{}).Where("user_id = ?", uid).Group("time").Count(&count).Error
+	err = db.DB.Model(&Detail{}).Where("user_id = ?", uid).Group("time").Count(&count).Error
 	return
 }

@@ -1,32 +1,29 @@
-package detail
+package model
 
 import (
 	"strconv"
-	"xiaoyin/app/model"
-	"xiaoyin/app/model/account"
-	"xiaoyin/app/model/category"
 	"xiaoyin/lib/db"
 	"xiaoyin/lib/util"
 )
 
 type Detail struct {
-	model.BaseModel
-	Money           *float64          `json:"money"`
-	UserId          uint              `json:"user_id"`
-	AccountId       uint              `json:"account_id"`
-	IncomeAccountId uint              `json:"income_account_id"`
-	CategoryId      uint              `json:"category_id"`
-	Time            string            `json:"time"`
-	Remark          *string           `json:"remark"`
-	Direction       uint              `json:"direction"`
-	Claim           *int              `json:"claim"`
-	Category        category.Category `json:"-" gorm:"foreignKey:ID;references:CategoryId"`
-	Account         account.Account   `json:"-" gorm:"foreignKey:ID;references:AccountId"`
-	IncomeAccount   account.Account   `json:"-" gorm:"foreignKey:ID;references:IncomeAccountId"`
+	BaseModel
+	Money           *float64 `json:"money"`
+	UserId          uint     `json:"user_id"`
+	AccountId       uint     `json:"account_id"`
+	IncomeAccountId uint     `json:"income_account_id"`
+	CategoryId      uint     `json:"category_id"`
+	Time            string   `json:"time"`
+	Remark          *string  `json:"remark"`
+	Direction       uint     `json:"direction"`
+	Claim           *int     `json:"claim"`
+	Category        Category `json:"-" gorm:"foreignKey:ID;references:CategoryId"`
+	Account         Account  `json:"-" gorm:"foreignKey:ID;references:AccountId"`
+	IncomeAccount   Account  `json:"-" gorm:"foreignKey:ID;references:IncomeAccountId"`
 }
 
 //TableName of GORM model
-func (m *Detail) TableName() string {
+func (detail *Detail) TableName() string {
 	return "detail"
 }
 
@@ -48,7 +45,7 @@ type ListMoney struct {
 	Total     float64 `json:"total"`
 }
 
-func ListByUid(uid uint) (list []Detail, err error) {
+func ListDetailsByUid(uid uint) (list []Detail, err error) {
 	err = db.DB.Where("user_id = ?", uid).Find(&list).Error
 	return
 }
@@ -82,7 +79,7 @@ func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err err
 	return
 }
 
-func ListByParams(uid uint, params SearchParams, paginate bool) (list []Detail, err error) {
+func ListDetailsByParams(uid uint, params SearchParams, paginate bool) (list []Detail, err error) {
 	var sdb = db.DB
 	sdb = sdb.Where("user_id = ?", uid)
 	if params.Remark != "" {
@@ -118,25 +115,25 @@ func ListByParams(uid uint, params SearchParams, paginate bool) (list []Detail, 
 		sdb = sdb.Where("id = ?", params.Id)
 	}
 	if paginate {
-		err = sdb.Scopes(model.Paginate(params.PageNo, params.PageSize)).Preload("Category").Preload("Account").Preload("IncomeAccount").Order("time desc,create_time desc").Find(&list).Error
+		err = sdb.Scopes(Paginate(params.PageNo, params.PageSize)).Preload("Category").Preload("Account").Preload("IncomeAccount").Order("time desc,create_time desc").Find(&list).Error
 	} else {
 		err = sdb.Preload("Category").Preload("Account").Preload("IncomeAccount").Order("time desc,create_time desc").Find(&list).Error
 	}
 	return
 }
 
-func Save(data *Detail) (id uint, err error) {
-	err = db.DB.Omit("Category", "Account", "IncomeAccount").Create(&data).Error
-	id = data.ID
+func (detail *Detail)Save() (id uint, err error) {
+	err = db.DB.Omit("Category", "Account", "IncomeAccount").Create(&detail).Error
+	id = detail.ID
 	return
 }
 
-func Update(data *Detail) (err error) {
-	err = db.DB.Omit("Category", "Account", "IncomeAccount", "id", "create_time").Updates(&data).Error
+func (detail *Detail)Update() (err error) {
+	err = db.DB.Omit("Category", "Account", "IncomeAccount", "id", "create_time").Updates(&detail).Error
 	return
 }
 
-func Del(id uint, uid uint) (err error) {
+func DelDetailById(id uint, uid uint) (err error) {
 	err = db.DB.Where("id = ? AND user_id = ?", id, uid).Delete(Detail{}).Error
 	return
 }

@@ -1,9 +1,8 @@
-package account
+package service
 
 import (
 	"fmt"
-	"xiaoyin/app/model/account"
-	"xiaoyin/app/model/detail"
+	"xiaoyin/app/model"
 	"xiaoyin/lib/db"
 	"xiaoyin/lib/util"
 
@@ -20,15 +19,16 @@ type ManageList struct {
 }
 
 //账户列表
-type List struct {
+type AccountList struct {
 	Id   uint   `json:"id"`
 	Name string `json:"name"`
 	Icon string `json:"icon"`
 }
-type Info = account.Account
 
-func Save(data *Info) (id uint, err error) {
-	id, _, err = account.CheckExist(data.UserId, data.Name)
+type AccountInfo = model.Account
+
+func SaveAccount(data *model.Account) (id uint, err error) {
+	id, _, err = model.CheckAccountExist(data.UserId, data.Name)
 	if err != nil {
 		err = errors.Wrap(err, "账户重复检查失败")
 		return
@@ -37,20 +37,20 @@ func Save(data *Info) (id uint, err error) {
 		err = errors.New("该账户已存在")
 		return
 	}
-	id, err = account.Save(data)
+	id, err = data.Save()
 	if err != nil {
 		err = errors.Wrap(err, "账户保存失败")
 	}
 	return
 }
 
-func GetDetailsCount(uid uint, id uint) (count int64, err error) {
-	err = db.DB.Model(&detail.Detail{}).Where("user_id = ? AND account_id = ?", uid, id).Count(&count).Error
+func GetDetailsCountByAid(uid uint, id uint) (count int64, err error) {
+	err = db.DB.Model(&model.Detail{}).Where("user_id = ? AND account_id = ?", uid, id).Count(&count).Error
 	return
 }
 
-func Update(tmpBalance float64, data *Info) (err error) {
-	id, balance, err := account.CheckExist(data.UserId, data.Name)
+func UpdateAccount(tmpBalance float64, data *model.Account) (err error) {
+	id, balance, err := model.CheckAccountExist(data.UserId, data.Name)
 	if err != nil {
 		err = errors.Wrap(err, "账户重复检查失败")
 		return
@@ -65,14 +65,14 @@ func Update(tmpBalance float64, data *Info) (err error) {
 	} else {
 		data.Balance = &balance
 	}
-	err = account.Update(data)
+	err = data.Update()
 	if err != nil {
 		err = errors.Wrap(err, "更新失败")
 	}
 	return
 }
 
-func DelWithDetails(id uint, uid uint) (err error) {
+func DelAccountWithDetails(id uint, uid uint) (err error) {
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -84,12 +84,12 @@ func DelWithDetails(id uint, uid uint) (err error) {
 	if err != nil {
 		return
 	}
-	err = tx.Where("account_id = ? AND user_id = ?", id, uid).Delete(detail.Detail{}).Error
+	err = tx.Where("account_id = ? AND user_id = ?", id, uid).Delete(model.Detail{}).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
-	err = tx.Where("id = ? AND user_id = ?", id, uid).Delete(account.Account{}).Error
+	err = tx.Where("id = ? AND user_id = ?", id, uid).Delete(model.Account{}).Error
 	if err != nil {
 		tx.Rollback()
 		return
@@ -101,13 +101,13 @@ func DelWithDetails(id uint, uid uint) (err error) {
 	return
 }
 
-func ListByUid(uid uint) (list []*List, err error) {
-	r, err := account.List(uid)
+func ListAccountsByUid(uid uint) (list []*AccountList, err error) {
+	r, err := model.ListAccountsByUid(uid)
 	if err != nil {
 		return
 	}
 	for _, v := range r {
-		list = append(list, &List{
+		list = append(list, &AccountList{
 			Id:   v.ID,
 			Name: v.Name,
 			Icon: v.Icon,
@@ -117,12 +117,12 @@ func ListByUid(uid uint) (list []*List, err error) {
 }
 
 func GetManageList(uid uint) (list []*ManageList, err error) {
-	accountList, err := account.List(uid)
+	accountList, err := model.ListAccountsByUid(uid)
 	if err != nil {
 		err = errors.Wrap(err, "查询账户列表失败")
 		return
 	}
-	detailList, err := detail.ListByUid(uid)
+	detailList, err := model.ListDetailsByUid(uid)
 	if err != nil {
 		err = errors.Wrap(err, "查询明细列表失败")
 		return

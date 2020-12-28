@@ -1,9 +1,7 @@
-package check
-
-import "xiaoyin/app/model"
+package model
 
 type Check struct {
-	model.BaseModel
+	BaseModel
 	UserId uint   `json:"user_id"`
 	Data   string `json:"data"`
 }

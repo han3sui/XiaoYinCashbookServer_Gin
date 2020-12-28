@@ -1,8 +1,7 @@
-package category
+package service
 
 import (
-	"xiaoyin/app/model/category"
-	"xiaoyin/app/model/detail"
+	"xiaoyin/app/model"
 	"xiaoyin/lib/db"
 
 	"github.com/pkg/errors"
@@ -23,21 +22,21 @@ type ParentDetail struct {
 	Icon string `json:"icon"`
 }
 
-type Info = category.Category
+type Category = model.Category
 
 //根据分类ID查找关联明细条数
-func GetDetailsCount(uid uint, id uint) (count int64, err error) {
-	err = db.DB.Model(&detail.Detail{}).Where("user_id = ? AND category_id = ?", uid, id).Count(&count).Error
+func GetDetailsCountByCid(uid uint, id uint) (count int64, err error) {
+	err = db.DB.Model(&model.Detail{}).Where("user_id = ? AND category_id = ?", uid, id).Count(&count).Error
 	return
 }
 
 func ListTreeByUid(uid uint) (list map[string][]*Tree, err error) {
-	r, err := category.ListByUid(uid)
+	r, err := model.ListCategorysByUid(uid)
 	if err != nil {
 		return
 	}
-	incomeList := make([]Info, 0, len(r))
-	outList := make([]Info, 0, len(r))
+	incomeList := make([]Category, 0, len(r))
+	outList := make([]Category, 0, len(r))
 	for _, v := range r {
 		if v.Direction == 1 {
 			incomeList = append(incomeList, v)
@@ -52,15 +51,15 @@ func ListTreeByUid(uid uint) (list map[string][]*Tree, err error) {
 	return
 }
 
-func ListByUid(uid uint) (list []Info, err error) {
-	list, err = category.ListByUid(uid)
+func ListByUid(uid uint) (list []Category, err error) {
+	list, err = model.ListCategorysByUid(uid)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func GetParent(id uint, list []Info) (data ParentDetail) {
+func GetParent(id uint, list []Category) (data ParentDetail) {
 	for _, v := range list {
 		if v.ID == id {
 			if v.ParentId == 0 {
@@ -79,7 +78,7 @@ func GetParent(id uint, list []Info) (data ParentDetail) {
 }
 
 //根据分类ID查找分类详情
-func GetDetail(id uint, list []Info) (data Info) {
+func GetDetail(id uint, list []Category) (data Category) {
 	for _, v := range list {
 		if v.ID == id {
 			data = v
@@ -89,8 +88,8 @@ func GetDetail(id uint, list []Info) (data Info) {
 	return
 }
 
-func Save(data *Info) (id uint, err error) {
-	id, err = category.CheckExist(data.UserId, data.Name)
+func Save(data *Category) (id uint, err error) {
+	id, err = model.CheckCategoryExist(data.UserId, data.Name)
 	if err != nil {
 		err = errors.Wrap(err, "分类重复检查失败")
 		return
@@ -99,12 +98,12 @@ func Save(data *Info) (id uint, err error) {
 		err = errors.New("该分类已存在")
 		return
 	}
-	id, err = category.Save(data)
+	id, err = data.Save()
 	return
 }
 
-func Update(data *Info) (err error) {
-	id, err := category.CheckExist(data.UserId, data.Name)
+func Update(data *Category) (err error) {
+	id, err := model.CheckCategoryExist(data.UserId, data.Name)
 	if err != nil {
 		err = errors.Wrap(err, "分类重复检查失败")
 		return
@@ -113,12 +112,12 @@ func Update(data *Info) (err error) {
 		err = errors.New("该分类已存在")
 		return
 	}
-	err = category.Update(data)
+	err = data.Update()
 	return
 }
 
 func DelWithDetails(id uint, uid uint) (err error) {
-	boolean, err := category.CheckChildren(id, uid)
+	boolean, err := model.CheckCategoryChildren(id, uid)
 	if err != nil {
 		err = errors.Wrap(err, "检查子分类失败")
 		return
@@ -138,12 +137,12 @@ func DelWithDetails(id uint, uid uint) (err error) {
 	if err != nil {
 		return
 	}
-	err = tx.Where("category_id = ? AND user_id = ?", id, uid).Delete(detail.Detail{}).Error
+	err = tx.Where("category_id = ? AND user_id = ?", id, uid).Delete(model.Detail{}).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
-	err = tx.Where("id = ? AND user_id = ?", id, uid).Delete(category.Category{}).Error
+	err = tx.Where("id = ? AND user_id = ?", id, uid).Delete(model.Category{}).Error
 	if err != nil {
 		tx.Rollback()
 		return
@@ -155,7 +154,7 @@ func DelWithDetails(id uint, uid uint) (err error) {
 	return
 }
 
-func getTree(list []Info, pid uint) (tree []*Tree) {
+func getTree(list []Category, pid uint) (tree []*Tree) {
 	for _, v := range list {
 		if v.ParentId == pid {
 			nodes := getTree(list, v.ID)

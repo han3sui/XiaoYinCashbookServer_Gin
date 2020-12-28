@@ -1,17 +1,14 @@
-package user
+package model
 
 import (
 	"database/sql"
-	"xiaoyin/app/model"
-	"xiaoyin/app/model/account"
-	"xiaoyin/app/model/category"
 	"xiaoyin/lib/db"
 
 	"github.com/pkg/errors"
 )
 
 type User struct {
-	model.BaseModel
+	BaseModel
 	NickName   string        `json:"nick_name"`
 	Openid     string        `json:"openid"`
 	SessionKey string        `json:"session_key"`
@@ -20,12 +17,12 @@ type User struct {
 }
 
 //TableName of GORM model
-func (m *User) TableName() string {
+func (user *User) TableName() string {
 	return "user"
 }
 
 //账户初始化数据
-var InitAccountData = []account.Account{{
+var InitAccountData = []Account{{
 	Name:    "支付宝",
 	Balance: new(float64),
 	Icon:    "icon-account-zhifubao",
@@ -41,17 +38,17 @@ var InitAccountData = []account.Account{{
 
 //定义初始化数据结构
 type InitCategory struct {
-	MainCategory category.Category
-	Nodes        []category.Category
+	MainCategory Category
+	Nodes        []Category
 }
 
 //分类初始化数据
 var InitCategoryData = []InitCategory{{
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "餐饮",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "买菜",
 		Direction: 2,
 		Icon:      "icon-canyin-shucai",
@@ -73,11 +70,11 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-canyin-lingshi",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "生活缴费",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "水费",
 		Direction: 2,
 		Icon:      "icon-shenghuo-shuifei",
@@ -103,11 +100,11 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-account-xianjin",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "车辆费用",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "加油",
 		Direction: 2,
 		Icon:      "icon-cheliang-jiayou",
@@ -141,11 +138,11 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-chuxing-gaosu",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "日用品",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "纸品",
 		Direction: 2,
 		Icon:      "icon-riyong-zhipin",
@@ -167,11 +164,11 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-riyong-qingjie",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "出行",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "交通费",
 		Direction: 2,
 		Icon:      "icon-chuxing-dache",
@@ -185,11 +182,11 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-chuxing-jiudian",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "人情",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "人情红包",
 		Direction: 2,
 		Icon:      "icon-renqing-yasuiqian",
@@ -203,11 +200,11 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-renqing-yanqing",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "医疗健康",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "医院",
 		Direction: 2,
 		Icon:      "icon-yiliao-yiyuan",
@@ -225,11 +222,11 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-yiliao-baoxian",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "服饰",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "衣",
 		Direction: 2,
 		Icon:      "icon-fushi-yifu",
@@ -247,11 +244,11 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-fushi-peijian",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "贷款",
 		Direction: 2,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "房贷",
 		Direction: 2,
 		Icon:      "icon-daikuan-fangdai",
@@ -265,22 +262,22 @@ var InitCategoryData = []InitCategory{{
 		Icon:      "icon-daikuan-jiekuan",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "职业收入",
 		Direction: 1,
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "工资收入",
 		Direction: 1,
 		Icon:      "icon-shouru-gongzi",
 	}},
 }, {
-	MainCategory: category.Category{
+	MainCategory: Category{
 		Name:      "其他收入",
 		Direction: 1,
 		Icon:      "icon-shouru-gongzi",
 	},
-	Nodes: []category.Category{{
+	Nodes: []Category{{
 		Name:      "红包",
 		Direction: 1,
 		Icon:      "icon-shouru-hongbao",
@@ -291,7 +288,7 @@ var InitCategoryData = []InitCategory{{
 	}},
 }}
 
-func Save(data *User) (id uint, err error) {
+func (user *User)Save() (id uint, err error) {
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -303,15 +300,15 @@ func Save(data *User) (id uint, err error) {
 	if err != nil {
 		return
 	}
-	err = tx.Create(&data).Error
+	err = tx.Create(&user).Error
 	if err != nil {
 		tx.Rollback()
 		return
 	}
-	id = data.ID
-	var accountData []account.Account
+	id = user.ID
+	var accountData []Account
 	for _, v := range InitAccountData {
-		accountData = append(accountData, account.Account{
+		accountData = append(accountData, Account{
 			Name:    v.Name,
 			Icon:    v.Icon,
 			Balance: v.Balance,
@@ -323,9 +320,9 @@ func Save(data *User) (id uint, err error) {
 		tx.Rollback()
 		return
 	}
-	var mainCategory []category.Category
+	var mainCategory []Category
 	for _, v := range InitCategoryData {
-		mainCategory = append(mainCategory, category.Category{
+		mainCategory = append(mainCategory, Category{
 			Name:      v.MainCategory.Name,
 			Direction: v.MainCategory.Direction,
 			UserId:    id,
@@ -339,10 +336,10 @@ func Save(data *User) (id uint, err error) {
 	for k, v := range mainCategory {
 		InitCategoryData[k].MainCategory.ID = v.ID
 	}
-	var nodeCategory []category.Category
+	var nodeCategory []Category
 	for k, v := range InitCategoryData {
 		for _, v1 := range InitCategoryData[k].Nodes {
-			nodeCategory = append(nodeCategory, category.Category{
+			nodeCategory = append(nodeCategory, Category{
 				Name:      v1.Name,
 				Direction: v1.Direction,
 				UserId:    id,
@@ -360,17 +357,17 @@ func Save(data *User) (id uint, err error) {
 	return
 }
 
-func Update(id uint, data *User) (err error) {
-	err = db.DB.Model(&data).Where("id = ?", id).Updates(data).Error
+func (user *User)Update() (err error) {
+	err = db.DB.Where("id = ?", user.ID).Updates(&user).Error
 	return
 }
 
-func Info(uid uint) (data User, err error) {
-	err = db.DB.Where("id = ?", uid).Find(&data).Error
+func GetUserById(id uint) (data User, err error) {
+	err = db.DB.Where("id = ?", id).Find(&data).Error
 	return
 }
 
-func CheckExist(openid string) (id uint, err error) {
+func CheckUserExist(openid string) (id uint, err error) {
 	var user User
 	r := db.DB.Where("openid = ?", openid).Find(&user)
 	if r.Error != nil {

@@ -1,12 +1,11 @@
-package icon
+package model
 
 import (
-	"xiaoyin/app/model"
 	"xiaoyin/lib/db"
 )
 
 type Icon struct {
-	model.BaseModel
+	BaseModel
 	Name string `json:"name"`
 }
 
@@ -15,7 +14,7 @@ func (m *Icon) TableName() string {
 	return "icon"
 }
 
-func List() (list []Icon, err error) {
+func ListIcons() (list []Icon, err error) {
 	err = db.DB.Find(&list).Error
 	return
 }

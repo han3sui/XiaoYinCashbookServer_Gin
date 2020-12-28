@@ -1,9 +1,9 @@
-package token
+package service
 
 import (
 	"encoding/json"
 	"time"
-	"xiaoyin/app/service/user"
+	"xiaoyin/app/model"
 	"xiaoyin/lib/config"
 
 	"github.com/valyala/fasthttp"
@@ -29,9 +29,9 @@ type LoginInfo struct {
 	AvatarUrl string `json:"avatar_url" form:"avatar_url"`
 }
 
-type UserInfo = user.Info
+//type UserInfo = Info
 
-func Grant(data *LoginInfo) (token string, err error) {
+func GrantToken(data *LoginInfo) (token string, err error) {
 	r, err := wxAuth(data.Code)
 	if err != nil {
 		return
@@ -40,7 +40,7 @@ func Grant(data *LoginInfo) (token string, err error) {
 		err = errors.New(r["errmsg"].(string))
 		return
 	}
-	id, err := user.SaveOrUpdate(&UserInfo{
+	id, err := SaveOrUpdate(&model.User{
 		NickName:   data.NickName,
 		AvatarUrl:  data.AvatarUrl,
 		Openid:     r["openid"].(string),
@@ -79,7 +79,7 @@ func Grant(data *LoginInfo) (token string, err error) {
 	return
 }
 
-func Parse(token string) (tokenInfo *JwtInfo, err error) {
+func ParseToken(token string) (tokenInfo *JwtInfo, err error) {
 	//取消redis查询验证，直接解析token
 	//err = redis.Redis.Get(context.Background(), token).Err()
 	//if err == redis.Nil {

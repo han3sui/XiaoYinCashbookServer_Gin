@@ -1,11 +1,10 @@
-package user
+package service
 
 import (
 	"database/sql"
 	"encoding/json"
 	"time"
-	"xiaoyin/app/model/check"
-	"xiaoyin/app/model/user"
+	"xiaoyin/app/model"
 	"xiaoyin/lib/db"
 )
 
@@ -16,9 +15,8 @@ type UserInfo struct {
 	CheckTime CheckTime `json:"check_time"`
 }
 
-type CheckInfo = check.Check
+type CheckInfo = model.Check
 
-type Info = user.User
 
 type CheckTime sql.NullInt64
 
@@ -32,7 +30,7 @@ func (v CheckTime) MarshalJSON() ([]byte, error) {
 
 func UpdateCheckTime(uid uint, data *CheckInfo) (checkTime int64, err error) {
 	checkTime = time.Now().Unix()
-	err = db.DB.Model(&Info{}).Where("id = ?", uid).Update("check_time", checkTime).Error
+	err = db.DB.Model(&model.User{}).Where("id = ?", uid).Update("check_time", checkTime).Error
 	data.UserId = uid
 	_ = db.DB.Create(&data)
 	return
@@ -53,24 +51,26 @@ func (v CheckTime) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func SaveOrUpdate(data *Info) (id uint, err error) {
-	id, err = user.CheckExist(data.Openid)
+func SaveOrUpdate(data *model.User) (id uint, err error) {
+	id, err = model.CheckUserExist(data.Openid)
 	if err != nil {
 		return
 	}
 	if id == 0 {
-		id, err = user.Save(data)
+		id, err = data.Save()
 	} else {
-		err = user.Update(id, data)
+		data.ID=id
+		err = data.Update()
 	}
 	return
 }
 
-func GetInfo(uid uint) (data UserInfo, err error) {
-	r, err := user.Info(uid)
+func GetInfo(uid uint) (data *UserInfo, err error) {
+	r, err := model.GetUserById(uid)
 	if err != nil {
 		return
 	}
+	data=new(UserInfo)
 	data.ID = r.ID
 	data.AvatarUrl = r.AvatarUrl
 	data.NickName = r.NickName
