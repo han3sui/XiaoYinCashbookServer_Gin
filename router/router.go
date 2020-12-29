@@ -13,24 +13,24 @@ func InitRouter() http.Handler {
 	r.NoMethod(middleware.NotFound())
 	r.NoRoute(middleware.NotFound())
 	r.Use(middleware.LogInfo(), middleware.Recover(), middleware.Cors())
-	v2 := r.Group("/api/v2")
-	v2.POST("token", api.GrantToken)
-	v2.Use(middleware.Jwt())
+	v3 := r.Group("/api/v3")
+	v3.POST("token", api.GrantToken)
+	v3.Use(middleware.Jwt())
 	{
-		accountGroup := v2.Group("/accounts")
+		accountGroup := v3.Group("/accounts")
 		{
-			accountGroup.GET("", api.ListAccountByUid)
+			accountGroup.GET("", api.ListAccountsByUid)
 			accountGroup.GET("/details/count/:id", api.GetDetailsCountByAid)
 			accountGroup.GET("/manage-list", api.AccountManageList)
 			accountGroup.POST("", api.SaveAccount)
 			accountGroup.PUT("/:id", api.UpdateAccount)
 			accountGroup.DELETE("/:id", api.DelAccountWithDetails)
 		}
-		iconGroup := v2.Group("/icons")
+		iconGroup := v3.Group("/icons")
 		{
 			iconGroup.GET("", api.ListIcons)
 		}
-		categoryGroup := v2.Group("/category")
+		categoryGroup := v3.Group("/category")
 		{
 			categoryGroup.GET("", api.ListCategoryByUid)
 			categoryGroup.GET("/details/count/:id", api.GetDetailsCountByCid)
@@ -38,7 +38,7 @@ func InitRouter() http.Handler {
 			categoryGroup.POST("", api.SaveCategory)
 			categoryGroup.PUT("/:id", api.UpdateCategory)
 		}
-		detailGroup := v2.Group("/details")
+		detailGroup := v3.Group("/details")
 		{
 			detailGroup.GET("/money", api.ListMoneyByParams)
 			detailGroup.GET("", api.ListDetailsByParams)
@@ -51,12 +51,12 @@ func InitRouter() http.Handler {
 			detailGroup.DELETE("/:id", api.DelDetail)
 			detailGroup.PUT("/:id", api.UpdateDetail)
 		}
-		userGroup := v2.Group("/user")
+		userGroup := v3.Group("/user")
 		{
 			userGroup.GET("", api.GetUser)
 			userGroup.PUT("/checktime", api.UpdateCheckTime)
 		}
-		checkGroup := v2.Group("/check")
+		checkGroup := v3.Group("/check")
 		{
 			checkGroup.GET("", api.ListCheck)
 		}

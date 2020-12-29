@@ -96,7 +96,7 @@ func DelCategoryWithDetails(c *gin.Context) {
 		exception.Common(c, 111412, err)
 		return
 	}
-	err = service.DelWithDetails(uint(id), uid)
+	err = service.DelCategoryWithDetails(uint(id), uid)
 	if err != nil {
 		exception.Common(c, 111413, errors.Wrap(err, "删除失败"))
 		return

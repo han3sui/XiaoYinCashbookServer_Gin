@@ -226,7 +226,7 @@ func Chart(uid uint, params SearchParams) (list *ChartData, err error) {
 	if err != nil {
 		return
 	}
-	categoryList, err := ListByUid(uid)
+	categoryList, err := ListCategorysByUid(uid)
 	if err != nil {
 		return
 	}

@@ -18,13 +18,13 @@ type BalanceInfo struct {
 	TmpBalance *float64 `json:"tmp_balance" validate:"required" label:"账户临时余额"`
 }
 
-func ListAccountByUid(c *gin.Context) {
+func ListAccountsByUid(c *gin.Context) {
 	uid, err := util.GetUid(c)
 	if err != nil {
 		exception.Common(c, 101010, err)
 		return
 	}
-	list, err := service.ListByUid(uid)
+	list, err := service.ListAccountsByUid(uid)
 	if err != nil {
 		exception.Common(c, 101011, errors.Wrap(err, "获取账户列表失败"))
 		return
@@ -136,7 +136,7 @@ func DelAccountWithDetails(c *gin.Context) {
 		exception.Common(c, 101412, err)
 		return
 	}
-	err = service.DelWithDetails(uint(id), uid)
+	err = service.DelAccountWithDetails(uint(id), uid)
 	if err != nil {
 		exception.Common(c, 101413, errors.Wrap(err, "删除失败"))
 	} else {

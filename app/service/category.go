@@ -51,7 +51,7 @@ func ListTreeByUid(uid uint) (list map[string][]*Tree, err error) {
 	return
 }
 
-func ListByUid(uid uint) (list []Category, err error) {
+func ListCategorysByUid(uid uint) (list []Category, err error) {
 	list, err = model.ListCategorysByUid(uid)
 	if err != nil {
 		return
@@ -116,7 +116,7 @@ func Update(data *Category) (err error) {
 	return
 }
 
-func DelWithDetails(id uint, uid uint) (err error) {
+func DelCategoryWithDetails(id uint, uid uint) (err error) {
 	boolean, err := model.CheckCategoryChildren(id, uid)
 	if err != nil {
 		err = errors.Wrap(err, "检查子分类失败")
