@@ -262,3 +262,23 @@ func ListMoneyByParams(c *gin.Context) {
 	}
 	c.JSON(200, data)
 }
+
+func BatchUpdateClaim(c *gin.Context) {
+	uid, err := util.GetUid(c)
+	if err != nil {
+		exception.Common(c, 122010, err)
+		return
+	}
+	var req []service.ClaimDetail
+	err = c.ShouldBindJSON(&req)
+	if err != nil {
+		exception.Common(c, 122011, errors.Wrap(err, "参数绑定失败"))
+		return
+	}
+	err = service.BatchUpdateClaim(uid, req)
+	if err != nil {
+		exception.Common(c, 122012, errors.Wrap(err, "报销更新失败"))
+		return
+	}
+	c.Status(200)
+}

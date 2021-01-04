@@ -16,7 +16,7 @@ type Detail struct {
 	Time            string   `json:"time"`
 	Remark          *string  `json:"remark"`
 	Direction       uint     `json:"direction"`
-	Claim           *int     `json:"claim"`
+	Claim           *uint     `json:"claim"`
 	Category        Category `json:"-" gorm:"foreignKey:ID;references:CategoryId"`
 	Account         Account  `json:"-" gorm:"foreignKey:ID;references:AccountId"`
 	IncomeAccount   Account  `json:"-" gorm:"foreignKey:ID;references:IncomeAccountId"`

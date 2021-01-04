@@ -48,6 +48,7 @@ func InitRouter() http.Handler {
 			detailGroup.GET("/days", api.GetAllDays)
 			detailGroup.GET("/claim/:claim", api.ListClaim)
 			detailGroup.POST("", api.SaveDetail)
+			detailGroup.POST("/claim", api.BatchUpdateClaim)
 			detailGroup.DELETE("/:id", api.DelDetail)
 			detailGroup.PUT("/:id", api.UpdateDetail)
 		}

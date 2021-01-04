@@ -66,7 +66,7 @@ type List struct {
 	Time          string       `json:"time"`
 	Remark        string       `json:"remark"`
 	Direction     uint         `json:"direction"`
-	Claim         int          `json:"claim"`
+	Claim         uint         `json:"claim"`
 	UpdateTime    int64        `json:"update_time"`
 	Account       accountInfo  `json:"account"`
 	IncomeAccount accountInfo  `json:"income_account"`
@@ -83,6 +83,13 @@ type accountInfo struct {
 	Id   uint   `json:"id"`
 	Name string `json:"name"`
 	Icon string `json:"icon"`
+}
+
+//报销更新
+type ClaimDetail struct {
+	Id              uint `json:"id"`
+	Claim           uint `json:"claim"`
+	IncomeAccountId uint `json:"income_account_id"`
 }
 
 //根据月份获取总支出/总收入
@@ -346,6 +353,7 @@ func Del(id uint, uid uint) (err error) {
 	return
 }
 
+//查询是否存在未核账明细
 func IsExistUncheck(uid uint, checkTime uint) (boolean bool, err error) {
 	var count int64
 	err = db.DB.Model(&Detail{}).Where("user_id = ? AND update_time >= ?", uid, checkTime).Count(&count).Error
@@ -357,7 +365,36 @@ func IsExistUncheck(uid uint, checkTime uint) (boolean bool, err error) {
 	return
 }
 
+//获取总记账天数
 func AllDaysCount(uid uint) (count int64, err error) {
 	err = db.DB.Model(&Detail{}).Where("user_id = ?", uid).Group("time").Count(&count).Error
+	return
+}
+
+//批量更新报销
+func BatchUpdateClaim(uid uint, data []ClaimDetail) (err error) {
+	tx := db.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			err = errors.New("数据更新失败，已回滚")
+		}
+	}()
+	err = tx.Error
+	if err != nil {
+		return
+	}
+	for _, v := range data {
+		err = tx.Where("user_id = ?", uid).Where("id = ?", v.Id).Updates(&Detail{Claim: &v.Claim, IncomeAccountId: v.IncomeAccountId}).Error
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+	}
+	err = tx.Commit().Error
+	if err != nil {
+		tx.Rollback()
+		return
+	}
 	return
 }
