@@ -13,7 +13,7 @@ import (
 type Detail = model.Detail
 
 //搜索条件
-type SearchParams = model.SearchParams
+type DetailSearchParams = model.SearchParams
 type ListMoney = model.ListMoney
 
 //图表数据实体
@@ -93,7 +93,7 @@ type ClaimDetail struct {
 }
 
 //根据月份获取总支出/总收入
-func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err error) {
+func ListMoneyByParams(uid uint, params DetailSearchParams) (data []ListMoney, err error) {
 	data, err = model.ListMoneyByParams(uid, params)
 	if err != nil {
 		err = errors.Wrap(err, "获取总额失败")
@@ -103,7 +103,7 @@ func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err err
 }
 
 //条件查询
-func ListByParams(uid uint, params SearchParams) (list []*List, err error) {
+func ListByParams(uid uint, params DetailSearchParams) (list []*List, err error) {
 	r, err := model.ListDetailsByParams(uid, params, true)
 	if err != nil {
 		return
@@ -171,7 +171,7 @@ func ListClaim(uid uint, claim int) (list []*List, err error) {
 }
 
 //获取 年度/月份 账单数据
-func Bill(uid uint, params SearchParams) (list *BillData, err error) {
+func Bill(uid uint, params DetailSearchParams) (list *BillData, err error) {
 	r, err := model.ListDetailsByParams(uid, params, false)
 	if err != nil {
 		return
@@ -228,7 +228,7 @@ func GetDetailKey(id uint, list []ChartDataDetail) (key *int) {
 }
 
 //获取账单图表
-func Chart(uid uint, params SearchParams) (list *ChartData, err error) {
+func Chart(uid uint, params DetailSearchParams) (list *ChartData, err error) {
 	r, err := model.ListDetailsByParams(uid, params, false)
 	if err != nil {
 		return
@@ -322,7 +322,7 @@ func SaveDetail(data *Detail) (list []*List, err error) {
 		err = errors.Wrap(err, "账单保存失败")
 		return
 	}
-	list, err = ListByParams(data.UserId, SearchParams{Id: id})
+	list, err = ListByParams(data.UserId, DetailSearchParams{Id: id})
 	if err != nil {
 		err = errors.Wrap(err, "查询账单失败")
 		return
@@ -336,7 +336,7 @@ func UpdateDetail(data *Detail) (list []*List, err error) {
 		err = errors.Wrap(err, "账单更新失败")
 		return
 	}
-	list, err = ListByParams(data.UserId, SearchParams{Id: data.ID})
+	list, err = ListByParams(data.UserId, DetailSearchParams{Id: data.ID})
 	if err != nil {
 		err = errors.Wrap(err, "查询账单失败")
 		return

@@ -54,7 +54,7 @@ func IsExistUncheck(c *gin.Context) {
 }
 
 func Bill(c *gin.Context) {
-	var params service.SearchParams
+	var params service.DetailSearchParams
 	uid, err := util.GetUid(c)
 	if err != nil {
 		exception.Common(c, 121210, err)
@@ -80,7 +80,7 @@ func Chart(c *gin.Context) {
 		exception.Common(c, 121310, err)
 		return
 	}
-	var req service.SearchParams
+	var req service.DetailSearchParams
 	err = c.ShouldBindQuery(&req)
 	if err != nil {
 		exception.Common(c, 121311, errors.Wrap(err, "参数绑定失败"))
@@ -105,7 +105,7 @@ func ListDetailsByParams(c *gin.Context) {
 		exception.Common(c, 121410, err)
 		return
 	}
-	var req service.SearchParams
+	var req service.DetailSearchParams
 	err = c.ShouldBindQuery(&req)
 	if err != nil {
 		exception.Common(c, 121411, errors.Wrap(err, "参数绑定失败"))
@@ -244,7 +244,7 @@ func ListMoneyByParams(c *gin.Context) {
 		exception.Common(c, 121910, err)
 		return
 	}
-	var req service.SearchParams
+	var req service.DetailSearchParams
 	err = c.ShouldBindQuery(&req)
 	if err != nil {
 		exception.Common(c, 121911, errors.Wrap(err, "参数绑定失败"))
