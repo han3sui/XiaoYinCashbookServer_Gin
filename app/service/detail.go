@@ -259,6 +259,7 @@ func Chart(uid uint, params DetailSearchParams) (list *ChartData, err error) {
 
 //生成图表需要的树结构
 func getChartTree(data []Detail, categoryList []Category, totalMoney float64) (list []ChartDataDetail) {
+	list = *new([]ChartDataDetail)
 	for _, v := range data {
 		//获取父分类详情
 		parentDetail := GetParent(v.CategoryId, categoryList)
@@ -302,16 +303,18 @@ func getChartTree(data []Detail, categoryList []Category, totalMoney float64) (l
 				//如果该明细存在于所属子分类，则子分类的金额叠加，并重新计算百分比
 				list[*key].Nodes[*key1].Money = util.FloatAdd(list[*key].Nodes[*key1].Money, *v.Money, 2)
 				list[*key].Nodes[*key1].Percent = util.FloatMul(util.FloatDiv(list[*key].Nodes[*key1].Money, totalMoney, 4), 100, 2)
-				//子分类切片按照金额重新排序
-				sort.SliceStable(list[*key].Nodes, func(i, j int) bool {
-					return list[*key].Nodes[i].Money > list[*key].Nodes[j].Money
-				})
 			}
-			//父分类切片按照金额重新排序
-			sort.SliceStable(list, func(i, j int) bool {
-				return list[i].Money > list[j].Money
-			})
 		}
+	}
+	//父分类切片按照金额重新排序
+	sort.SliceStable(list, func(i, j int) bool {
+		return list[i].Money > list[j].Money
+	})
+	//子分类切片按照金额重新排序
+	for _, v := range list {
+		sort.SliceStable(v.Nodes, func(i, j int) bool {
+			return v.Nodes[i].Money > v.Nodes[j].Money
+		})
 	}
 	return
 }
