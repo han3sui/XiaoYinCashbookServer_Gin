@@ -40,11 +40,6 @@ type SearchParams struct {
 	PageSize   int    `json:"page_size" form:"page_size"`
 }
 
-type ListMoney struct {
-	Direction int     `json:"direction"`
-	Total     float64 `json:"total"`
-}
-
 func ListDetailsByUid(uid uint) (list []Detail, err error) {
 	err = db.DB.Where("user_id = ?", uid).Find(&list).Error
 	return
@@ -55,7 +50,7 @@ func ListClaim(uid uint, claim int) (list []Detail, err error) {
 	return
 }
 
-func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err error) {
+func ListAllDetailsByParams(uid uint, params SearchParams) (list []Detail, err error) {
 	var sdb = db.DB
 	sdb = sdb.Where("user_id = ?", uid)
 	if params.AccountId != 0 {
@@ -75,7 +70,8 @@ func ListMoneyByParams(uid uint, params SearchParams) (data []ListMoney, err err
 		}
 		sdb.Where("time >= ? AND time <= ?", timeStart, timeEnd)
 	}
-	err = sdb.Model(&Detail{}).Select("direction, sum(money) as total").Group("direction").Find(&data).Error
+	err=sdb.Select("direction,money,claim").Find(&list).Error
+	//err = sdb.Model(&Detail{}).Select("direction, sum(money) as total").Group("direction").Find(&data).Error
 	return
 }
 

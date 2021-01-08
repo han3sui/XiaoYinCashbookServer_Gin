@@ -14,7 +14,6 @@ type Detail = model.Detail
 
 //搜索条件
 type DetailSearchParams = model.SearchParams
-type ListMoney = model.ListMoney
 
 //图表数据实体
 type ChartData struct {
@@ -92,12 +91,30 @@ type ClaimDetail struct {
 	IncomeAccountId uint `json:"income_account_id"`
 }
 
+//金额总额
+type ListMoney struct {
+	Total     float64 `json:"total"`
+	Direction int     `json:"direction"`
+}
+
 //根据月份获取总支出/总收入
-func ListMoneyByParams(uid uint, params DetailSearchParams) (data []ListMoney, err error) {
-	data, err = model.ListMoneyByParams(uid, params)
+func ListMoneyByParams(uid uint, params DetailSearchParams) (data [2]ListMoney, err error) {
+	r, err := model.ListAllDetailsByParams(uid, params)
 	if err != nil {
 		err = errors.Wrap(err, "获取总额失败")
 		return
+	}
+	for _, v := range r {
+		if *v.Claim != 2 {
+			if v.Direction == 1 {
+				data[0].Direction = 1
+				data[0].Total = util.FloatAdd(data[0].Total, *v.Money, 2)
+			}
+			if v.Direction == 2 {
+				data[1].Direction = 2
+				data[1].Total = util.FloatAdd(data[1].Total, *v.Money, 2)
+			}
+		}
 	}
 	return
 }
