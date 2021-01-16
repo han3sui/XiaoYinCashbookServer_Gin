@@ -21,19 +21,25 @@ func (user *User) TableName() string {
 	return "user"
 }
 
+//默认初始化账户计入总资产
+var AddTotal = uint(1)
+
 //账户初始化数据
 var InitAccountData = []Account{{
-	Name:    "支付宝",
-	Balance: new(float64),
-	Icon:    "icon-account-zhifubao",
+	Name:     "支付宝",
+	Balance:  new(float64),
+	Icon:     "icon-account-zhifubao",
+	AddTotal: &AddTotal,
 }, {
-	Name:    "微信",
-	Balance: new(float64),
-	Icon:    "icon-account-weixin",
+	Name:     "微信",
+	Balance:  new(float64),
+	Icon:     "icon-account-weixin",
+	AddTotal: &AddTotal,
 }, {
-	Name:    "现金",
-	Balance: new(float64),
-	Icon:    "icon-account-xianjin",
+	Name:     "现金",
+	Balance:  new(float64),
+	Icon:     "icon-account-xianjin",
+	AddTotal: &AddTotal,
 }}
 
 //定义初始化数据结构
@@ -288,7 +294,7 @@ var InitCategoryData = []InitCategory{{
 	}},
 }}
 
-func (user *User)Save() (id uint, err error) {
+func (user *User) Save() (id uint, err error) {
 	tx := db.DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -309,10 +315,11 @@ func (user *User)Save() (id uint, err error) {
 	var accountData []Account
 	for _, v := range InitAccountData {
 		accountData = append(accountData, Account{
-			Name:    v.Name,
-			Icon:    v.Icon,
-			Balance: v.Balance,
-			UserId:  id,
+			Name:     v.Name,
+			Icon:     v.Icon,
+			Balance:  v.Balance,
+			UserId:   id,
+			AddTotal: v.AddTotal,
 		})
 	}
 	err = tx.Create(&accountData).Error
@@ -357,7 +364,7 @@ func (user *User)Save() (id uint, err error) {
 	return
 }
 
-func (user *User)Update() (err error) {
+func (user *User) Update() (err error) {
 	err = db.DB.Where("id = ?", user.ID).Updates(&user).Error
 	return
 }
